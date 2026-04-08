@@ -1,0 +1,1153 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mock Microsoft Teams Chat View</title>
+  <style>
+    :root{
+      --bg:#f3f2f1;
+      --surface:#ffffff;
+      --surface-2:#f8f8f8;
+      --surface-3:#edebe9;
+      --border:#e1dfdd;
+      --text:#242424;
+      --muted:#605e5c;
+      --brand:#6264a7;
+      --brand-dark:#4f52b2;
+      --brand-soft:#eef0ff;
+      --success:#107c10;
+      --danger:#c4314b;
+      --shadow:0 10px 26px rgba(0,0,0,.08);
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      height:100%;
+      font-family:"Segoe UI", Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      overflow:hidden;
+    }
+
+    body{
+      display:grid;
+      grid-template-columns:68px 320px 1fr 300px;
+      grid-template-rows:60px 1fr;
+      grid-template-areas:
+        "rail chatlist topbar topbar"
+        "rail chatlist main right";
+    }
+
+    button,input,textarea{font:inherit}
+
+    .rail{
+      grid-area:rail;
+      background:#1f1f1f;
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:12px 8px;
+      gap:8px;
+    }
+
+    .rail-logo{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#7b83eb,#5b5fc7);
+      display:grid;
+      place-items:center;
+      font-weight:800;
+      margin-bottom:6px;
+    }
+
+    .rail-btn{
+      width:46px;
+      height:46px;
+      border:none;
+      border-radius:14px;
+      background:transparent;
+      color:#fff;
+      cursor:pointer;
+      font-size:18px;
+      position:relative;
+    }
+
+    .rail-btn:hover{background:rgba(255,255,255,.08)}
+    .rail-btn.active{background:rgba(255,255,255,.12)}
+    .rail-btn.active::before{
+      content:"";
+      position:absolute;
+      left:-8px;
+      top:10px;
+      bottom:10px;
+      width:4px;
+      border-radius:999px;
+      background:#fff;
+    }
+
+    .rail-spacer{flex:1}
+
+    .topbar{
+      grid-area:topbar;
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding:0 16px;
+    }
+
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+      flex:1;
+    }
+
+    .search{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:var(--surface-2);
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:10px 14px;
+      width:min(560px,100%);
+      min-width:180px;
+    }
+
+    .search input{
+      width:100%;
+      border:none;
+      background:transparent;
+      outline:none;
+      color:var(--text);
+      font-size:14px;
+    }
+
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-shrink:0;
+    }
+
+    .icon-btn{
+      width:36px;
+      height:36px;
+      border:none;
+      border-radius:12px;
+      background:transparent;
+      cursor:pointer;
+      font-size:16px;
+    }
+
+    .icon-btn:hover{background:var(--surface-2)}
+
+    .profile{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:var(--surface-2);
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:5px 10px 5px 5px;
+    }
+
+    .avatar{
+      width:32px;
+      height:32px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-weight:700;
+      background:linear-gradient(135deg,#9a6df0,#5b5fc7);
+      position:relative;
+      flex-shrink:0;
+    }
+
+    .avatar::after{
+      content:"";
+      position:absolute;
+      right:0;
+      bottom:0;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#34c759;
+      box-shadow:0 0 0 2px #fff;
+    }
+
+    .chatlist{
+      grid-area:chatlist;
+      background:var(--surface);
+      border-right:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+
+    .chatlist-header{
+      padding:16px;
+      border-bottom:1px solid var(--border);
+    }
+
+    .chatlist-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .chatlist-top h2{
+      margin:0;
+      font-size:24px;
+    }
+
+    .new-chat-btn{
+      border:none;
+      background:var(--brand);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .new-chat-btn:hover{background:var(--brand-dark)}
+
+    .chatlist-filter{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .filter-pill{
+      border:1px solid var(--border);
+      background:var(--surface-2);
+      color:var(--text);
+      padding:8px 12px;
+      border-radius:999px;
+      font-size:13px;
+      cursor:pointer;
+    }
+
+    .filter-pill.active{
+      background:var(--brand-soft);
+      border-color:#cfd4ff;
+      color:var(--brand-dark);
+      font-weight:600;
+    }
+
+    .chat-items{
+      overflow:auto;
+      padding:10px 8px 16px;
+    }
+
+    .chat-group-label{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-weight:700;
+      padding:10px 10px 6px;
+    }
+
+    .chat-item{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      width:100%;
+      border:none;
+      background:transparent;
+      text-align:left;
+      padding:12px 10px;
+      border-radius:14px;
+      cursor:pointer;
+      margin-bottom:4px;
+    }
+
+    .chat-item:hover{background:var(--surface-2)}
+    .chat-item.active{
+      background:#ecebff;
+    }
+
+    .chat-item-avatar{
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-weight:700;
+      flex-shrink:0;
+      position:relative;
+    }
+
+    .chat-item-avatar.online::after{
+      content:"";
+      position:absolute;
+      right:1px;
+      bottom:1px;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#34c759;
+      box-shadow:0 0 0 2px #fff;
+    }
+
+    .chat-item-body{
+      min-width:0;
+      flex:1;
+    }
+
+    .chat-item-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:4px;
+    }
+
+    .chat-item-title{
+      font-weight:700;
+      font-size:14px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .chat-item-time{
+      font-size:12px;
+      color:var(--muted);
+      flex-shrink:0;
+    }
+
+    .chat-item-sub{
+      font-size:13px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .chat-item.active .chat-item-sub{
+      color:#49454f;
+    }
+
+    .chat-item-meta{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:6px;
+    }
+
+    .unread{
+      min-width:20px;
+      height:20px;
+      border-radius:999px;
+      background:var(--brand);
+      color:#fff;
+      font-size:11px;
+      font-weight:700;
+      display:grid;
+      place-items:center;
+      padding:0 6px;
+    }
+
+    .main{
+      grid-area:main;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      min-height:0;
+    }
+
+    .chat-header{
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+
+    .chat-header-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .chat-header-avatar{
+      width:40px;
+      height:40px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-weight:700;
+      flex-shrink:0;
+      position:relative;
+    }
+
+    .chat-header-avatar.online::after{
+      content:"";
+      position:absolute;
+      right:1px;
+      bottom:1px;
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#34c759;
+      box-shadow:0 0 0 2px #fff;
+    }
+
+    .chat-header-text{
+      min-width:0;
+    }
+
+    .chat-header-text h3{
+      margin:0;
+      font-size:18px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .chat-header-text p{
+      margin:3px 0 0;
+      font-size:13px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .chat-header-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .ghost-btn,.primary-btn{
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .ghost-btn{
+      background:var(--surface-2);
+      border:1px solid var(--border);
+      color:var(--text);
+    }
+
+    .ghost-btn:hover{background:var(--surface-3)}
+
+    .primary-btn{
+      background:var(--brand);
+      color:#fff;
+    }
+
+    .primary-btn:hover{background:var(--brand-dark)}
+
+    .messages{
+      flex:1;
+      overflow:auto;
+      padding:18px;
+      background:linear-gradient(to bottom,#f8f7ff 0,#f8f7ff 110px,var(--bg) 110px,var(--bg) 100%);
+    }
+
+    .date-sep{
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      margin:8px 0 18px;
+    }
+
+    .message{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:18px;
+    }
+
+    .msg-avatar{
+      width:38px;
+      height:38px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-weight:700;
+      flex-shrink:0;
+    }
+
+    .message-content{
+      min-width:0;
+      max-width:850px;
+      width:100%;
+    }
+
+    .msg-top{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:6px;
+    }
+
+    .msg-name{font-weight:700}
+    .msg-time{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .msg-bubble{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:13px 14px;
+      line-height:1.45;
+    }
+
+    .msg-bubble p{margin:0 0 8px}
+    .msg-bubble p:last-child{margin-bottom:0}
+
+    .card{
+      margin-top:10px;
+      background:var(--surface-2);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+    }
+
+    .card strong{
+      display:block;
+      margin-bottom:6px;
+    }
+
+    .composer{
+      background:var(--surface);
+      border-top:1px solid var(--border);
+      padding:14px 18px 18px;
+    }
+
+    .composer-tools{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .tool-chip{
+      border:1px solid var(--border);
+      background:var(--surface-2);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      cursor:pointer;
+    }
+
+    .composer-box{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      border:1px solid var(--border);
+      background:var(--surface-2);
+      border-radius:18px;
+      padding:12px;
+    }
+
+    .composer-box textarea{
+      width:100%;
+      min-height:84px;
+      resize:none;
+      border:none;
+      outline:none;
+      background:transparent;
+      font-size:15px;
+      color:var(--text);
+      font-family:inherit;
+    }
+
+    .composer-actions{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .composer-left,.composer-right{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .send-btn{
+      border:none;
+      background:var(--brand);
+      color:#fff;
+      padding:10px 18px;
+      border-radius:12px;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .send-btn:hover{background:var(--brand-dark)}
+
+    .right{
+      grid-area:right;
+      background:var(--surface);
+      border-left:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+    }
+
+    .right-section{
+      padding:18px;
+      border-bottom:1px solid var(--border);
+    }
+
+    .right-section h4{
+      margin:0 0 12px;
+      font-size:16px;
+    }
+
+    .info-card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:var(--surface-2);
+      padding:14px;
+      line-height:1.45;
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .people-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .person{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 0;
+      border-bottom:1px solid var(--border);
+    }
+
+    .person:last-child{border-bottom:none}
+
+    .mini-avatar{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:#fff;
+      font-weight:700;
+      flex-shrink:0;
+    }
+
+    .person-info strong{
+      display:block;
+      font-size:14px;
+    }
+
+    .person-info span{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .toast{
+      position:fixed;
+      right:20px;
+      bottom:20px;
+      background:#1f1f1f;
+      color:#fff;
+      padding:14px 16px;
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      opacity:0;
+      transform:translateY(10px);
+      pointer-events:none;
+      transition:.25s ease;
+      z-index:50;
+      max-width:320px;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    @media (max-width: 1200px){
+      body{
+        grid-template-columns:68px 320px 1fr;
+        grid-template-areas:
+          "rail chatlist topbar"
+          "rail chatlist main";
+      }
+      .right{display:none}
+    }
+
+    @media (max-width: 900px){
+      body{
+        grid-template-columns:68px 1fr;
+        grid-template-areas:
+          "rail topbar"
+          "rail main";
+      }
+      .chatlist{display:none}
+      .profile div:not(.avatar){display:none}
+    }
+  </style>
+</head>
+<body>
+  <aside class="rail">
+    <div class="rail-logo">T</div>
+    <button class="rail-btn active" title="Chat">💬</button>
+    <button class="rail-btn" title="Teams">👥</button>
+    <button class="rail-btn" title="Calendar">📅</button>
+    <button class="rail-btn" title="Calls">📞</button>
+    <button class="rail-btn" title="Files">📁</button>
+    <div class="rail-spacer"></div>
+    <button class="rail-btn" title="Apps">➕</button>
+    <button class="rail-btn" title="Settings">⚙️</button>
+  </aside>
+
+  <aside class="chatlist">
+    <div class="chatlist-header">
+      <div class="chatlist-top">
+        <h2>Chat</h2>
+        <button class="new-chat-btn" id="newChatBtn">New chat</button>
+      </div>
+      <div class="chatlist-filter">
+        <button class="filter-pill active">All</button>
+        <button class="filter-pill">Unread</button>
+        <button class="filter-pill">Meetings</button>
+      </div>
+    </div>
+
+    <div class="chat-items">
+      <div class="chat-group-label">Pinned</div>
+
+      <button class="chat-item active" data-topic="it-escalation">
+        <div class="chat-item-avatar online" style="background:#6264a7;">IE</div>
+        <div class="chat-item-body">
+          <div class="chat-item-row">
+            <div class="chat-item-title">IT Escalation</div>
+            <div class="chat-item-time">9:03 AM</div>
+          </div>
+          <div class="chat-item-sub">You: Please keep all updates in this thread…</div>
+          <div class="chat-item-meta">
+            <span class="unread">4</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="chat-item" data-topic="nsw-techs">
+        <div class="chat-item-avatar online" style="background:#2d7d9a;">NS</div>
+        <div class="chat-item-body">
+          <div class="chat-item-row">
+            <div class="chat-item-title">NSW Techs</div>
+            <div class="chat-item-time">8:33 AM</div>
+          </div>
+          <div class="chat-item-sub">You: Noted. Please post any updates here…</div>
+          <div class="chat-item-meta">
+            <span class="unread">2</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="chat-item" data-topic="qld-techs">
+        <div class="chat-item-avatar" style="background:#d26c2d;">QL</div>
+        <div class="chat-item-body">
+          <div class="chat-item-row">
+            <div class="chat-item-title">QLD Techs</div>
+            <div class="chat-item-time">8:10 AM</div>
+          </div>
+          <div class="chat-item-sub">You: Thanks everyone.</div>
+        </div>
+      </button>
+
+      <button class="chat-item" data-topic="vic-techs">
+        <div class="chat-item-avatar" style="background:#a24dcf;">VI</div>
+        <div class="chat-item-body">
+          <div class="chat-item-row">
+            <div class="chat-item-title">VIC Techs</div>
+            <div class="chat-item-time">8:22 AM</div>
+          </div>
+          <div class="chat-item-sub">You: Perfect, please keep the timeline…</div>
+          <div class="chat-item-meta">
+            <span class="unread">1</span>
+          </div>
+        </div>
+      </button>
+
+      <button class="chat-item" data-topic="wa-techs">
+        <div class="chat-item-avatar" style="background:#107c10;">WA</div>
+        <div class="chat-item-body">
+          <div class="chat-item-row">
+            <div class="chat-item-title">WA Techs</div>
+            <div class="chat-item-time">7:55 AM</div>
+          </div>
+          <div class="chat-item-sub">You: Thanks, keep us posted if anything changes.</div>
+        </div>
+      </button>
+
+      <div class="chat-group-label">Recent</div>
+
+      <button class="chat-item">
+        <div class="chat-item-avatar online" style="background:#5b5fc7;">AL</div>
+        <div class="chat-item-body">
+          <div class="chat-item-row">
+            <div class="chat-item-title">Alex</div>
+            <div class="chat-item-time">Yesterday</div>
+          </div>
+          <div class="chat-item-sub">Can you jump on a quick call later?</div>
+        </div>
+      </button>
+
+      <button class="chat-item">
+        <div class="chat-item-avatar" style="background:#9a6df0;">TM</div>
+        <div class="chat-item-body">
+          <div class="chat-item-row">
+            <div class="chat-item-title">Taylor</div>
+            <div class="chat-item-time">Yesterday</div>
+          </div>
+          <div class="chat-item-sub">I’ll send through the summary shortly.</div>
+        </div>
+      </button>
+    </div>
+  </aside>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <label class="search">
+        <span>🔎</span>
+        <input type="text" id="searchInput" placeholder="Search" />
+      </label>
+    </div>
+
+    <div class="topbar-right">
+      <button class="icon-btn" title="Notifications">🔔</button>
+      <button class="icon-btn" title="Settings">⚙️</button>
+      <div class="profile">
+        <div class="avatar">DU</div>
+        <div>
+          <div style="font-weight:700;font-size:13px;">Demo User</div>
+          <small>Available</small>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-header-avatar online" id="headerAvatar" style="background:#6264a7;">IE</div>
+        <div class="chat-header-text">
+          <h3 id="chatTitle">IT Escalation</h3>
+          <p id="chatSubtitle">Priority incidents, escalations and urgent support coordination</p>
+        </div>
+      </div>
+
+      <div class="chat-header-actions">
+        <button class="ghost-btn" id="callBtn">Call</button>
+        <button class="ghost-btn" id="videoBtn">Video</button>
+        <button class="primary-btn" id="meetBtn">Meet now</button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="composer">
+      <div class="composer-tools">
+        <button class="tool-chip">Format</button>
+        <button class="tool-chip">Attach</button>
+        <button class="tool-chip">Emoji</button>
+        <button class="tool-chip">Loop</button>
+        <button class="tool-chip">Praise</button>
+      </div>
+
+      <div class="composer-box">
+        <textarea id="messageInput" placeholder="Type a new message"></textarea>
+        <div class="composer-actions">
+          <div class="composer-left">
+            <button class="icon-btn">😊</button>
+            <button class="icon-btn">📎</button>
+            <button class="icon-btn">🎞️</button>
+          </div>
+          <div class="composer-right">
+            <button class="ghost-btn" id="clearBtn">Clear</button>
+            <button class="send-btn" id="sendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right">
+    <div class="right-section">
+      <h4>Chat info</h4>
+      <div class="info-card" id="infoCard">
+        Support coordination space for urgent issues and regional updates.
+      </div>
+    </div>
+
+    <div class="right-section">
+      <h4>People</h4>
+      <div class="people-list" id="peopleList"></div>
+    </div>
+  </aside>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const chatData = {
+      "it-escalation": {
+        title: "IT Escalation",
+        subtitle: "Priority incidents, escalations and urgent support coordination",
+        avatar: "IE",
+        avatarColor: "#6264a7",
+        info: "Support coordination space for urgent issues and regional updates.",
+        people: [
+          { initials: "AL", name: "Alex", status: "Available", color: "#5b5fc7" },
+          { initials: "JR", name: "Jordan", status: "Reviewing updates", color: "#2d7d9a" },
+          { initials: "TM", name: "Taylor", status: "Presenting", color: "#d26c2d" }
+        ],
+        messages: [
+          { initials: "AL", color: "#5b5fc7", name: "Alex", time: "8:41 AM", text: "Heads up team, we have a priority issue being reviewed now." },
+          { initials: "JR", color: "#2d7d9a", name: "Jordan", time: "8:47 AM", text: "Initial checks are done. Waiting on confirmation from the onsite team." },
+          { initials: "TM", color: "#d26c2d", name: "Taylor", time: "8:52 AM", text: "I’ve posted the current notes below.", cardTitle: "Current status", cardBody: "Priority issue under review. Awaiting field update and next action confirmation." },
+          { initials: "DU", color: "#9a6df0", name: "You", time: "9:03 AM", text: "Please keep all updates in this thread until it is resolved." }
+        ]
+      },
+      "nsw-techs": {
+        title: "NSW Techs",
+        subtitle: "New South Wales support chat and field updates",
+        avatar: "NS",
+        avatarColor: "#2d7d9a",
+        info: "Regional chat for New South Wales field updates and coordination.",
+        people: [
+          { initials: "AL", name: "Alex", status: "Available", color: "#5b5fc7" },
+          { initials: "RK", name: "Riley", status: "On site", color: "#2d7d9a" },
+          { initials: "SJ", name: "Sam", status: "Driving", color: "#107c10" }
+        ],
+        messages: [
+          { initials: "AL", color: "#5b5fc7", name: "Alex", time: "8:18 AM", text: "Morning NSW team, please confirm today’s site coverage." },
+          { initials: "RK", color: "#2d7d9a", name: "Riley", time: "8:25 AM", text: "Coverage is confirmed. One location may need a follow-up visit this afternoon." },
+          { initials: "DU", color: "#9a6df0", name: "You", time: "8:33 AM", text: "Noted. Please post any updates here once the visit is complete." }
+        ]
+      },
+      "qld-techs": {
+        title: "QLD Techs",
+        subtitle: "Queensland support chat and field updates",
+        avatar: "QL",
+        avatarColor: "#d26c2d",
+        info: "Regional chat for Queensland support and team check-ins.",
+        people: [
+          { initials: "TM", name: "Taylor", status: "Available", color: "#d26c2d" },
+          { initials: "KB", name: "Kai", status: "Online", color: "#5b5fc7" }
+        ],
+        messages: [
+          { initials: "TM", color: "#d26c2d", name: "Taylor", time: "7:58 AM", text: "Morning QLD, all scheduled work is on track so far." },
+          { initials: "KB", color: "#5b5fc7", name: "Kai", time: "8:05 AM", text: "Great. Please raise anything urgent here straight away." },
+          { initials: "DU", color: "#9a6df0", name: "You", time: "8:10 AM", text: "Thanks everyone." }
+        ]
+      },
+      "vic-techs": {
+        title: "VIC Techs",
+        subtitle: "Victoria support chat and field updates",
+        avatar: "VI",
+        avatarColor: "#a24dcf",
+        info: "Regional chat for Victoria updates, checks and coordination.",
+        people: [
+          { initials: "JR", name: "Jordan", status: "Available", color: "#2d7d9a" },
+          { initials: "TM", name: "Taylor", status: "Busy", color: "#d26c2d" }
+        ],
+        messages: [
+          { initials: "JR", color: "#2d7d9a", name: "Jordan", time: "8:11 AM", text: "VIC team has one open follow-up from yesterday." },
+          { initials: "TM", color: "#d26c2d", name: "Taylor", time: "8:16 AM", text: "I’ll update once the morning checks are complete." },
+          { initials: "DU", color: "#9a6df0", name: "You", time: "8:22 AM", text: "Perfect, please keep the timeline posted here." }
+        ]
+      },
+      "wa-techs": {
+        title: "WA Techs",
+        subtitle: "Western Australia support chat and field updates",
+        avatar: "WA",
+        avatarColor: "#107c10",
+        info: "Regional chat for Western Australia check-ins and updates.",
+        people: [
+          { initials: "AL", name: "Alex", status: "Available", color: "#5b5fc7" },
+          { initials: "JR", name: "Jordan", status: "Online", color: "#2d7d9a" }
+        ],
+        messages: [
+          { initials: "AL", color: "#5b5fc7", name: "Alex", time: "7:42 AM", text: "WA team is online." },
+          { initials: "JR", color: "#2d7d9a", name: "Jordan", time: "7:48 AM", text: "No major issues to report at this stage." },
+          { initials: "DU", color: "#9a6df0", name: "You", time: "7:55 AM", text: "Thanks, keep us posted if anything changes." }
+        ]
+      }
+    };
+
+    const messagesEl = document.getElementById("messages");
+    const peopleListEl = document.getElementById("peopleList");
+    const titleEl = document.getElementById("chatTitle");
+    const subtitleEl = document.getElementById("chatSubtitle");
+    const headerAvatarEl = document.getElementById("headerAvatar");
+    const infoCardEl = document.getElementById("infoCard");
+    const chatItems = document.querySelectorAll(".chat-item");
+    const input = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const searchInput = document.getElementById("searchInput");
+    const toast = document.getElementById("toast");
+
+    let currentTopic = "it-escalation";
+
+    function showToast(text){
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2200);
+    }
+
+    function buildMessage(message){
+      const wrapper = document.createElement("div");
+      wrapper.className = "message searchable";
+      wrapper.innerHTML = `
+        <div class="msg-avatar" style="background:${message.color};">${message.initials}</div>
+        <div class="message-content">
+          <div class="msg-top">
+            <span class="msg-name">${message.name}</span>
+            <span class="msg-time">${message.time}</span>
+          </div>
+          <div class="msg-bubble">
+            <p>${message.text}</p>
+            ${message.cardTitle ? `<div class="card"><strong>${message.cardTitle}</strong>${message.cardBody}</div>` : ""}
+          </div>
+        </div>
+      `;
+      return wrapper;
+    }
+
+    function renderPeople(people){
+      peopleListEl.innerHTML = "";
+      people.forEach(person => {
+        const item = document.createElement("div");
+        item.className = "person";
+        item.innerHTML = `
+          <div class="mini-avatar" style="background:${person.color};">${person.initials}</div>
+          <div class="person-info">
+            <strong>${person.name}</strong>
+            <span>${person.status}</span>
+          </div>
+        `;
+        peopleListEl.appendChild(item);
+      });
+    }
+
+    function renderChat(topic){
+      currentTopic = topic;
+      const data = chatData[topic];
+
+      titleEl.textContent = data.title;
+      subtitleEl.textContent = data.subtitle;
+      headerAvatarEl.textContent = data.avatar;
+      headerAvatarEl.style.background = data.avatarColor;
+      infoCardEl.textContent = data.info;
+
+      messagesEl.innerHTML = `<div class="date-sep">Today</div>`;
+      data.messages.forEach(msg => messagesEl.appendChild(buildMessage(msg)));
+      renderPeople(data.people);
+      applySearch();
+    }
+
+    function applySearch(){
+      const term = searchInput.value.trim().toLowerCase();
+      document.querySelectorAll(".searchable").forEach(item => {
+        const match = item.innerText.toLowerCase().includes(term);
+        item.style.display = match || !term ? "" : "none";
+      });
+    }
+
+    chatItems.forEach(item => {
+      item.addEventListener("click", () => {
+        if (!item.dataset.topic) return;
+        chatItems.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+        renderChat(item.dataset.topic);
+      });
+    });
+
+    function sendMessage(){
+      const text = input.value.trim();
+      if(!text){
+        showToast("Type a message first");
+        return;
+      }
+
+      const now = new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+      const message = {
+        initials: "DU",
+        color: "#9a6df0",
+        name: "You",
+        time: now,
+        text
+      };
+
+      chatData[currentTopic].messages.push(message);
+      messagesEl.appendChild(buildMessage(message));
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      input.value = "";
+      applySearch();
+      showToast("Message sent");
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    input.addEventListener("keydown", e => {
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      input.focus();
+    });
+
+    searchInput.addEventListener("input", applySearch);
+
+    document.getElementById("newChatBtn").addEventListener("click", () => showToast("New chat opened"));
+    document.getElementById("callBtn").addEventListener("click", () => showToast("Starting call"));
+    document.getElementById("videoBtn").addEventListener("click", () => showToast("Starting video call"));
+    document.getElementById("meetBtn").addEventListener("click", () => showToast("Meeting started"));
+
+    renderChat("it-escalation");
+  </script>
+</body>
+</html>
+```
